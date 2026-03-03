@@ -58,3 +58,32 @@ pnpm preview
 ```
 
 Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+
+## Learning Example: Pinia + XState
+
+This workspace now includes a simple learning example on `/` using your API:
+
+- API: `https://mp13670615701467ec74.free.beeceptor.com`
+- XState handles the request lifecycle (`idle -> loading -> success/failure`)
+- Pinia stores the fetched data so any page/component can reuse it
+
+### Files
+
+- Store: `app/stores/apiData.ts`
+- State machine: `app/machines/apiMachine.ts`
+- Page UI: `app/pages/index.vue`
+
+### Why this pattern is useful
+
+- Use **XState** for flow logic (what happens next and when)
+- Use **Pinia** for shared app state (what data your app keeps)
+- In larger projects, this keeps side-effects and transitions predictable while preserving a single source of truth for data
+
+### Suggested structure for larger apps
+
+- `app/stores/*` for domain stores (`user`, `orders`, `settings`)
+- `app/machines/*` for workflows (`checkoutMachine`, `authMachine`)
+- `app/services/*` for API clients (plain fetch functions)
+- `app/composables/*` for reusable glue code between stores and machines
+
+When this starts growing, move API calls out of machine files into `services` and inject them into machines for easier testing.
