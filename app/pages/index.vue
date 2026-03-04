@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const quickUserLinks = [1, 2, 3, 4, 5]
+const quickTodoSlots = [1, 2]
 </script>
 
 <template>
@@ -29,6 +30,21 @@ const quickUserLinks = [1, 2, 3, 4, 5]
             :to="`/user/${userId}`"
           >
             user/{{ userId }}
+          </UButton>
+        </div>
+
+        <p class="text-sm text-muted">
+          Todos slots (cached per slot, fetched from /todos/random):
+        </p>
+        <div class="flex flex-wrap gap-2">
+          <UButton
+            v-for="slot in quickTodoSlots"
+            :key="slot"
+            color="neutral"
+            variant="outline"
+            :to="`/todos/${slot}`"
+          >
+            todos/{{ slot }}
           </UButton>
         </div>
       </div>
