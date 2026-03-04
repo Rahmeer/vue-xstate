@@ -1,89 +1,90 @@
-# Nuxt Starter Template
+# XState + Pinia Caching Demo (Nuxt 4)
 
-[![Nuxt UI](https://img.shields.io/badge/Made%20with-Nuxt%20UI-00DC82?logo=nuxt&labelColor=020420)](https://ui.nuxt.com)
+This project demonstrates request orchestration with **XState** and shared client caching with **Pinia**.
 
-Use this template to get started with [Nuxt UI](https://ui.nuxt.com) quickly.
+It includes two flows:
 
-- [Live demo](https://starter-template.nuxt.dev/)
-- [Documentation](https://ui.nuxt.com/docs/getting-started/installation/nuxt)
+- **Users flow**: route-driven fetch from `https://dummyjson.com/users/:id`
+- **Todos flow**: slot-driven cache (`/todos/1`, `/todos/2`) backed by `https://dummyjson.com/todos/random`
 
-<a href="https://starter-template.nuxt.dev/" target="_blank">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://ui.nuxt.com/assets/templates/nuxt/starter-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://ui.nuxt.com/assets/templates/nuxt/starter-light.png">
-    <img alt="Nuxt Starter Template" src="https://ui.nuxt.com/assets/templates/nuxt/starter-light.png" width="830" height="466">
-  </picture>
-</a>
+## Stack
 
-> The starter template for Vue is on https://github.com/nuxt-ui-templates/starter-vue.
-
-## Quick Start
-
-```bash [Terminal]
-npm create nuxt@latest -- -t github:nuxt-ui-templates/starter
-```
-
-## Deploy your own
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-name=starter&repository-url=https%3A%2F%2Fgithub.com%2Fnuxt-ui-templates%2Fstarter&demo-image=https%3A%2F%2Fui.nuxt.com%2Fassets%2Ftemplates%2Fnuxt%2Fstarter-dark.png&demo-url=https%3A%2F%2Fstarter-template.nuxt.dev%2F&demo-title=Nuxt%20Starter%20Template&demo-description=A%20minimal%20template%20to%20get%20started%20with%20Nuxt%20UI.)
+- Nuxt 4 + Vue 3
+- Pinia
+- XState v5 + `@xstate/vue`
+- Nuxt UI
 
 ## Setup
 
-Make sure to install the dependencies:
+Install dependencies:
 
 ```bash
 pnpm install
 ```
 
-## Development Server
-
-Start the development server on `http://localhost:3000`:
+Run development server:
 
 ```bash
 pnpm dev
 ```
 
-## Production
-
-Build the application for production:
+Available scripts:
 
 ```bash
+pnpm dev
 pnpm build
-```
-
-Locally preview production build:
-
-```bash
 pnpm preview
+pnpm lint
+pnpm typecheck
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+## VS Code Extension (Recommended)
 
-## Learning Example: Pinia + XState
+Install the XState visualizer extension for better machine authoring and inspection:
 
-This workspace now includes a simple learning example on `/` using your API:
+- Extension: **Stately for VS Code**
+- Marketplace ID: `statelyai.stately-vscode`
 
-- API: `https://mp13670615701467ec74.free.beeceptor.com`
-- XState handles the request lifecycle (`idle -> loading -> success/failure`)
-- Pinia stores the fetched data so any page/component can reuse it
+You can install it from the VS Code Extensions panel by searching for `statelyai.stately-vscode`.
 
-### Files
+## Routes
 
-- Store: `app/stores/apiData.ts`
-- State machine: `app/machines/apiMachine.ts`
-- Page UI: `app/pages/index.vue`
+- `/` quick links to user and todos demo routes
+- `/user/:id` user detail/caching flow (examples: `/user/1`, `/user/2`)
+- `/todos/:slot` todos slot flow where `slot` is `1` or `2`
 
-### Why this pattern is useful
+## How Caching Works
 
-- Use **XState** for flow logic (what happens next and when)
-- Use **Pinia** for shared app state (what data your app keeps)
-- In larger projects, this keeps side-effects and transitions predictable while preserving a single source of truth for data
+### Users (`/user/:id`)
 
-### Suggested structure for larger apps
+- Cache key: `userId`
+- First visit to a user ID: fetch from API and store in Pinia
+- Revisiting same user ID: serve from cache immediately
+- Optional `FORCE_FETCH` path exists in the user machine to bypass cache
 
-- `app/stores/*` for domain stores (`user`, `orders`, `settings`)
-- `app/machines/*` for workflows (`checkoutMachine`, `authMachine`)
-- `app/services/*` for API clients (plain fetch functions)
-- `app/composables/*` for reusable glue code between stores and machines
+### Todos (`/todos/1` and `/todos/2`)
 
-When this starts growing, move API calls out of machine files into `services` and inject them into machines for easier testing.
+- Cache key: slot (`1` or `2`)
+- Data source: always `https://dummyjson.com/todos/random`
+- First visit to slot: immediate fetch and store under that slot
+- Revisiting slot:
+  - cached todo is shown immediately
+  - machine enters refresh mode and waits **5 seconds**
+  - after delay, calls API and updates the same slot with latest data
+
+This is a stale-while-revalidate style UX with intentional delayed revalidation for the todos flow.
+
+## Key Files
+
+- Home page: `app/pages/index.vue`
+- User page: `app/pages/user/[id].vue`
+- Todos page: `app/pages/todos/[slot].vue`
+- User machine: `app/machines/apiMachine.ts`
+- Todos machine: `app/machines/todoMachine.ts`
+- User store: `app/stores/apiData.ts`
+- Todos store: `app/stores/todoData.ts`
+
+## Notes
+
+- Todos route only supports slot `1` or `2`; invalid slot shows an error state.
+- Request counters and last fetch timestamps are tracked in stores for visibility/debugging.
